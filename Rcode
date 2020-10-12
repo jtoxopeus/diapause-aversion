@@ -22,17 +22,17 @@ my.data <- read.csv("MRat4and25C.csv", stringsAsFactors = FALSE)
 str(my.data)
 
 ##subset data into the two experiments
-NDvD.data <- subset(my.data, my.data$Prewinter.length=="10 d")
-SDvD.data <- subset(my.data, my.data$Prewinter.length!="10 d")
+NDvD.data <- subset(my.data, my.data$Age.at.chilling=="10 d")
+SDvD.data <- subset(my.data, my.data$Age.at.chilling="10 d")
 
 ############# Diapause vs. non-diapause ###############
 
 #1. Restructure data to make temperature a column variable
 
 NDvD.cold <- cbind(NDvD.data$Pupa.ID, NDvD.data$Classification, NDvD.data$Mass..mg.,
-                   NDvD.data$MRat4C..ul.h., log(NDvD.data$MRat4C..ul.h.), rep(4,length(NDvD.data$PupaID)))
+                   NDvD.data$MRat4C..ul.h., log(NDvD.data$MRat4C..ul.h.), rep(4,length(NDvD.data$Pupa.ID)))
 NDvD.warm <- cbind(NDvD.data$Pupa.ID, NDvD.data$Classification, NDvD.data$Mass..mg.,
-                   NDvD.data$MRat25C..ul.h., log(NDvD.data$MRat25C..ul.h.), rep(25,length(NDvD.data$PupaID)))
+                   NDvD.data$MRat25C..ul.h., log(NDvD.data$MRat25C..ul.h.), rep(25,length(NDvD.data$Pupa.ID)))
 NDvD.data2 <- as.data.frame(rbind(NDvD.cold, NDvD.warm))
 colnames(NDvD.data2) <- c("Pupa.ID", "Classification", "Mass", "MR", "logMR", "Temperature")
 NDvD.data2$Mass <- as.numeric(as.character(NDvD.data2$Mass))
@@ -305,12 +305,18 @@ my.data <- read.csv("MRat4Covertime.csv", stringsAsFactors = FALSE)
 str(my.data)
 
 #restructure data to make time a column variable
-my.data.1 <- cbind(my.data[, c(1:5,6)], rep(1, length(my.data$Pupa.ID)))
+my.data.1 <- cbind(my.data[, c(1:5,6)], rep(1, length(my.data$Pupa.ID))) 
+colnames(my.data.1) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.") 
 my.data.2 <- cbind(my.data[, c(1:5,7)], rep(2, length(my.data$Pupa.ID)))
+colnames(my.data.2) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.")
 my.data.7 <- cbind(my.data[, c(1:5,8)], rep(7, length(my.data$Pupa.ID)))
+colnames(my.data.7) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.")
 my.data.14 <- cbind(my.data[, c(1:5,9)], rep(14, length(my.data$Pupa.ID)))
+colnames(my.data.14) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.")
 my.data.28 <- cbind(my.data[, c(1:5,10)], rep(28, length(my.data$Pupa.ID)))
+colnames(my.data.28) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.")
 my.data.56 <- cbind(my.data[, c(1:5,11)], rep(56, length(my.data$Pupa.ID)))
+colnames(my.data.56) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "Mass", "MR", "Time..d.")
 
 my.data2 <- as.data.frame(rbind(my.data.1, my.data.2, my.data.7,
                                 my.data.14, my.data.28, my.data.56))
@@ -320,7 +326,7 @@ my.data2$MR <- as.numeric(as.character(my.data2$MR))
 my.data2$Time..d. <- as.numeric(as.character(my.data2$Time..d.))
 
 #remove individuals with incomplete datasets
-s <- which(is.na(my.data2$MS.MR)) #check for rows with missing MR data
+s <- which(is.na(my.data2$MR)) #check for rows with missing MR data
 s2 <- my.data2$Pupa.ID[s] #check which pupa IDs are associated with those rows
 s3<- s2[!duplicated(s2)] #remove duplicate pupa IDs
 s4 <- which(my.data2$Pupa.ID %in% s3) #find row numbers in dataset with those pupa IDs
@@ -329,7 +335,7 @@ my.data3 <- my.data2[-s4,] #remove those rows
 #subset data into the two experiments
 
 ##NDvD
-NDvD.data <- subset(my.data, my.data$Prewinter.length=="10 d")
+NDvD.data <- subset(my.data3, my.data$Age.at.chill=="10 d")
 length(NDvD.data$Pupa.ID[NDvD.data$Classification=="ND"])
 length(NDvD.data$Pupa.ID[NDvD.data$Classification=="D"])
 #number of ND and D individuals is the same (balanced) - 174 each
@@ -339,7 +345,7 @@ NDvD.data$Classification <- factor(NDvD.data$Classification, levels=c("D", "ND")
 levels(NDvD.data$Classification)
 
 ##SDvD
-SDvD.data <- subset(my.data, my.data$Prewinter.length!="10 d")
+SDvD.data <- subset(my.data3, my.data$Age.at.chill!="10 d")
 length(SDvD.data$Pupa.ID[SDvD.data$Classification=="SD"])
 length(SDvD.data$Pupa.ID[SDvD.data$Classification=="D"])
 #number of SD and D individuals is not the same (unbalanced) - 216 vs. 240
@@ -598,7 +604,7 @@ write.table(pdatSD, "MRovertimeCI_SDvD_ShallowDiapause.txt", sep="\t", row.names
 #NDvD
 NDvD.data$logMR <- log(NDvD.data$MR)
 
-ND.model <- aov(logMR ~ Mass..mg. + Classification * Time..d. + Error(Pupa.ID), NDvD.data)
+ND.model <- aov(logMR ~ Mass + Classification * Time..d. + Error(Pupa.ID), NDvD.data)
 summary(ND.model)
 
 #### Post-hoc tests to compare metabolic rates among groups at each time point ####
@@ -654,7 +660,7 @@ anova(my.model)
 #my.data$Classification  2   2.868   1.434  0.3243 0.724141   
 #Residuals               69 305.073   4.421                    
 #---
-#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ##Age at which pupae enter fridge (Expt) affects SCP (older pupae = lower SCP)
 
@@ -676,14 +682,16 @@ str(my.data)
 #1. Code flies as alive or dead
 
 #all eclosed and "undeveloped, alive" flies are alive
-a <- which(my.data$Category.1=="Eclosed" | my.data$Category.1=="Undeveloped, alive") #rows with alive individuals
-d <- which(my.data$Category.1=="Undeveloped, dead" | my.data$Category.1=="Developed, dead" | my.data$Category.1=="Dead") #rows with dead individuals
-LiveDead1 <- vector(length=length(my.data$Category.1)) #empty logical vector
+a <- which(my.data$Category=="Eclosed" | my.data$Category=="Undeveloped, alive") #rows with alive individuals
+d <- which(my.data$Category=="Undeveloped, dead" | my.data$Category=="Developed, dead" | my.data$Category=="Dead") #rows with dead individuals
+LiveDead1 <- vector(length=length(my.data$Category)) #empty logical vector
 LiveDead1[a] <- 1 #enter 1 for all live individuals
 LiveDead1[d] <- 0 #enter 0 for all dead individuals
 
 #add LiveDead columns to dataframe
 my.data$LiveDead1 <- LiveDead1
+
+colnames(my.data) <- c("Expt", "Pupa.ID", "Classification", "Age.at.chill", "WeeksWinter", "Category", "EclosionTime")
 
 ##Diapause vs. Non-diapause
 
@@ -723,7 +731,7 @@ summary(ND.model)
 #WeeksWinter16        -1.0889     0.3707  -2.937  0.00331 ** 
 #WeeksWinter24        -0.8456     0.3626  -2.332  0.01970 *  
 #  ---
-#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #
 #(Dispersion parameter for binomial family taken to be 1)
 #
@@ -774,7 +782,7 @@ summary(SD.model)
 #ClassificationSD:WeeksWinter16  -0.2516     0.9870  -0.255 0.798787    
 #ClassificationSD:WeeksWinter24  -1.9783     0.8710  -2.271 0.023127 *  
 #  ---
-#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+#  Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #
 #(Dispersion parameter for binomial family taken to be 1)
 #
